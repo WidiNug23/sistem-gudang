@@ -1,22 +1,31 @@
-"use client" // Ini wajib untuk menggunakan onClick / confirm
+"use client";
 
-type Props = {
+interface DeleteButtonProps {
   id: number;
-  action: (id: number) => Promise<void>;
+  // Kita buat action fleksibel agar bisa menerima server action langsung 
+  // atau fungsi custom (id) => Promise<void>
+  action: (id: number) => Promise<void> | void; 
   label: string;
-  confirmMsg: string;
+  confirmMsg?: string; // Tambahkan opsional agar tidak error
   className?: string;
 }
 
-export default function DeleteButton({ id, action, label, confirmMsg, className }: Props) {
-  const handleAction = async () => {
-    if (window.confirm(confirmMsg)) {
-      await action(id);
+export default function DeleteButton({ id, action, label, confirmMsg, className }: DeleteButtonProps) {
+  const handleDelete = async () => {
+    const pesan = confirmMsg || "Apakah Anda yakin ingin menghapus data ini?";
+    
+    if (confirm(pesan)) {
+      try {
+        await action(id);
+      } catch (error) {
+        console.error("Gagal menghapus:", error);
+        alert("Gagal menghapus data. Kategori mungkin masih digunakan oleh barang.");
+      }
     }
   };
 
   return (
-    <button onClick={handleAction} className={className}>
+    <button onClick={handleDelete} className={className} type="button">
       {label}
     </button>
   );

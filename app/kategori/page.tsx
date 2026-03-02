@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react"; // Tambahkan useRef
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { tambahKategori, hapusKategori, updateKategori } from "../actions";
 import Link from "next/link";
@@ -9,22 +9,54 @@ import DeleteButton from "../components/DeleteButton";
 export default function KategoriPage() {
   const [kategori, setKategori] = useState<any[]>([]);
   const [editData, setEditData] = useState<{ id: number; nama: string } | null>(null);
-  const formRef = useRef<HTMLFormElement>(null); // Referensi ke form
+  const [isLoading, setIsLoading] = useState(true);
+  const formRef = useRef<HTMLFormElement>(null);
 
+  // Fungsi untuk memuat data kategori
   const loadKategori = async () => {
+    setIsLoading(true);
     const { data } = await supabase
       .from("kategori")
       .select("*")
       .order("id", { ascending: true });
     if (data) setKategori(data);
+    setIsLoading(false);
   };
 
   useEffect(() => {
     loadKategori();
   }, []);
 
+  // Fungsi pengecekan sebelum hapus (Kondisi 2)
+  const handleSafeDelete = async (id: number) => {
+    // Cek di tabel junction 'barang_kategori'
+    // Jika ada data di sini, berarti ada barang (aktif/sampah) yang memakai kategori ini
+    const { count, error: checkError } = await supabase
+      .from("barang_kategori")
+      .select("*", { count: "exact", head: true })
+      .eq("kategori_id", id);
+
+    if (checkError) {
+      alert("Database error: Gagal melakukan verifikasi relasi.");
+      return;
+    }
+
+    // Jika ditemukan barang yang menggunakan kategori ini
+    if (count && count > 0) {
+      alert("Gagal hapus: Kategori masih digunakan oleh barang.");
+      return;
+    }
+
+    // Jika aman, eksekusi Server Action
+    try {
+      await hapusKategori(id);
+      await loadKategori(); 
+    } catch (err) {
+      alert("Terjadi kesalahan sistem saat menghapus.");
+    }
+  };
+
   const handleSubmit = async (formData: FormData) => {
-    // Ambil nilai nama_kategori untuk validasi manual jika perlu
     const nama = formData.get("nama_kategori");
     if (!nama) return;
 
@@ -35,10 +67,7 @@ export default function KategoriPage() {
       await tambahKategori(formData);
     }
 
-    // RESET FORM SECARA PAKSA
     formRef.current?.reset(); 
-    
-    // REFRESH DATA
     await loadKategori(); 
   };
 
@@ -46,6 +75,7 @@ export default function KategoriPage() {
     <main className="min-h-screen bg-[#0f1115] p-6 md:p-10">
       <div className="max-w-4xl mx-auto">
         
+        {/* Header Section */}
         <div className="flex justify-between items-end mb-12 border-b border-blue-500/20 pb-8">
           <div>
             <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
@@ -59,13 +89,13 @@ export default function KategoriPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Form Create/Edit */}
           <div className="md:col-span-1">
             <div className={`bg-[#1a1d23] border ${editData ? 'border-amber-500/50' : 'border-white/10'} p-6 rounded-[32px] sticky top-10 transition-all`}>
               <h2 className={`font-bold mb-4 uppercase text-xs tracking-widest ${editData ? 'text-amber-500' : 'text-white'}`}>
                 {editData ? "Edit Category" : "Add New Category"}
               </h2>
               
-              {/* Tambahkan ref={formRef} di sini */}
               <form ref={formRef} action={handleSubmit} className="space-y-4">
                 {editData && <input type="hidden" name="id" value={editData.id} />}
                 
@@ -104,42 +134,44 @@ export default function KategoriPage() {
             </div>
           </div>
 
+          {/* List Categories */}
           <div className="md:col-span-2 space-y-3">
-            {kategori.length === 0 && <p className="text-slate-600 italic text-sm p-10 text-center">Loading categories...</p>}
-            
-            {kategori.map((item) => (
-              <div key={item.id} className={`group flex justify-between items-center bg-[#1a1d23] border p-5 rounded-2xl transition-all ${
-                editData?.id === item.id ? 'border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-white/5 hover:border-blue-500/30'
-              }`}>
-                <div className="flex items-center gap-4">
-                  <span className="text-slate-600 font-mono text-xs">#{item.id}</span>
-                  <p className="text-white font-bold">{item.nama_kategori}</p>
-                </div>
-                
-                <div className="flex items-center gap-6">
-                  <button 
-                    onClick={() => {
-                      setEditData({ id: item.id, nama: item.nama_kategori });
-                      window.scrollTo({ top: 0, behavior: 'smooth' }); // Opsional: scroll ke form
-                    }}
-                    className="text-[10px] font-black text-blue-500/50 hover:text-blue-500 tracking-widest transition-all"
-                  >
-                    EDIT
-                  </button>
+            {isLoading ? (
+               <p className="text-slate-600 italic text-sm p-10 text-center">Synchronizing database...</p>
+            ) : kategori.length === 0 ? (
+               <p className="text-slate-600 italic text-sm p-10 text-center">No categories found.</p>
+            ) : (
+              kategori.map((item) => (
+                <div key={item.id} className={`group flex justify-between items-center bg-[#1a1d23] border p-5 rounded-2xl transition-all ${
+                  editData?.id === item.id ? 'border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-white/5 hover:border-blue-500/30'
+                }`}>
+                  <div className="flex items-center gap-4">
+                    <span className="text-slate-600 font-mono text-xs">#{item.id}</span>
+                    <p className="text-white font-bold uppercase tracking-tight">{item.nama_kategori}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-6">
+                    <button 
+                      onClick={() => {
+                        setEditData({ id: item.id, nama: item.nama_kategori });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="text-[10px] font-black text-blue-500/50 hover:text-blue-500 tracking-widest transition-all"
+                    >
+                      EDIT
+                    </button>
 
-                  <DeleteButton 
-                    id={item.id} 
-                    action={async (id) => {
-                       await hapusKategori(id);
-                       loadKategori();
-                    }} 
-                    label="DELETE" 
-                    confirmMsg="Hapus kategori ini? Pastikan tidak ada barang yang menggunakannya." 
-                    className="text-[10px] font-black text-red-500/30 hover:text-red-500 tracking-widest transition-colors"
-                  />
+                    <DeleteButton 
+                      id={Number(item.id)} 
+                      action={handleSafeDelete} // Menggunakan logika pengaman baru
+                      label="DELETE" 
+                      confirmMsg="Hapus kategori ini? Pastikan tidak ada barang yang menggunakannya." 
+                      className="text-[10px] font-black text-red-500/30 hover:text-red-500 tracking-widest transition-colors"
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

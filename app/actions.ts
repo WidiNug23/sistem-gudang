@@ -6,32 +6,76 @@ import { redirect } from "next/navigation";
 
 // Simpan Barang Baru
 export async function tambahBarang(formData: FormData) {
-  const { error } = await supabase.from("barang").insert([{ 
-    nama: formData.get("nama"), 
-    jumlah: parseInt(formData.get("jumlah") as string), 
-    lokasi: formData.get("lokasi"),
-    kategori_id: parseInt(formData.get("kategori_id") as string)
-  }]);
-  if (!error) { revalidatePath("/"); redirect("/"); }
+  // 1. Ambil data dari formulir
+  const nama = formData.get("nama") as string;
+  const jumlah = parseInt(formData.get("jumlah") as string);
+  const lokasi = formData.get("lokasi") as string;
+  const catatan = formData.get("catatan") as string; // Pastikan ini ada
+  const kategoriIds = formData.getAll("kategori") as string[]; 
+
+  // 2. Masukkan ke tabel 'barang'
+  const { data: barangBaru, error: errorBarang } = await supabase
+    .from("barang")
+    .insert([
+      { 
+        nama, 
+        jumlah, 
+        lokasi, 
+        catatan, // Kirim nilai catatan ke database
+        is_deleted: false 
+      },
+    ])
+    .select()
+    .single();
+
+  if (errorBarang) throw new Error(errorBarang.message);
+
+  // 3. Masukkan relasi kategori jika ada
+  if (kategoriIds.length > 0 && barangBaru) {
+    const relasi = kategoriIds.map((katId) => ({
+      barang_id: barangBaru.id,
+      kategori_id: parseInt(katId),
+    }));
+
+    await supabase.from("barang_kategori").insert(relasi);
+  }
+
+  revalidatePath("/");
+  redirect("/");
 }
 
-// EDIT BARANG
 export async function updateBarang(formData: FormData) {
-  const id = formData.get("id"); // Mengambil ID dari input hidden di form edit
-  
-  const { error } = await supabase
+  // 1. Ambil data
+  const id = formData.get("id") as string;
+  const nama = formData.get("nama") as string;
+  const jumlah = parseInt(formData.get("jumlah") as string);
+  const lokasi = formData.get("lokasi") as string;
+  const catatan = formData.get("catatan") as string; // Pastikan ini ada
+  const kategoriIds = formData.getAll("kategori") as string[];
+
+  // 2. Update tabel 'barang'
+  const { error: errorBarang } = await supabase
     .from("barang")
     .update({ 
-      nama: formData.get("nama"), 
-      jumlah: parseInt(formData.get("jumlah") as string), 
-      lokasi: formData.get("lokasi"),
-      kategori_id: parseInt(formData.get("kategori_id") as string)
+      nama, 
+      jumlah, 
+      lokasi, 
+      catatan, // Update nilai catatan di database
+      updated_at: new Date().toISOString() 
     })
-    .eq("id", id); // Mencocokkan ID agar yang terupdate hanya 1 barang itu saja
+    .eq("id", id);
 
-  if (error) {
-    console.error("Gagal update:", error.message);
-    return;
+  if (errorBarang) throw new Error(errorBarang.message);
+
+  // 3. Sinkronisasi Kategori (Hapus lama, tambah baru)
+  await supabase.from("barang_kategori").delete().eq("barang_id", id);
+  
+  if (kategoriIds.length > 0) {
+    const relasi = kategoriIds.map((katId) => ({
+      barang_id: parseInt(id),
+      kategori_id: parseInt(katId),
+    }));
+    await supabase.from("barang_kategori").insert(relasi);
   }
 
   revalidatePath("/");
@@ -46,13 +90,31 @@ export async function softDeleteBarang(id: number) {
 
 // PULIHKAN
 export async function restoreBarang(id: number) {
-  await supabase.from("barang").update({ is_deleted: false }).eq("id", id);
+  await supabase
+    .from("barang")
+    .update({ is_deleted: false })
+    .eq("id", id);
+    
+  revalidatePath("/");
   revalidatePath("/sampah");
 }
 
 // HAPUS PERMANEN
 export async function hapusPermanen(id: number) {
-  await supabase.from("barang").delete().eq("id", id);
+  // 1. Hapus relasi di tabel junction dulu
+  await supabase
+    .from("barang_kategori")
+    .delete()
+    .eq("barang_id", id);
+
+  // 2. Baru hapus barangnya secara permanen
+  const { error } = await supabase
+    .from("barang")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+
   revalidatePath("/sampah");
 }
 
