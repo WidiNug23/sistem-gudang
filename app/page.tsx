@@ -3,6 +3,7 @@ import { softDeleteBarang } from "./actions";
 import Link from "next/link";
 import DeleteButton from "./components/DeleteButton";
 import SortDropdown from "./components/SortDropdown";
+import AdjustmentButton from "./components/AdjustmentButton";
 
 export const revalidate = 0;
 
@@ -16,15 +17,13 @@ export default async function Home({
   const urutan = filters.urutan || "terbaru";
   const kataKunci = filters.cari || "";
 
-  // 1. Mengambil daftar kategori untuk filter bar
+  // 1. Mengambil daftar kategori
   const { data: listKategori } = await supabase
     .from("kategori")
     .select("id, nama_kategori")
     .order("nama_kategori", { ascending: true });
 
   // 2. Membangun Query
-  // PERBAIKAN: Menggunakan join standar (tanpa !inner secara default) 
-  // agar data tidak hilang jika relasi kategori kosong, kecuali saat filter kategori aktif.
   let query = supabase
     .from("barang")
     .select(`
@@ -60,7 +59,6 @@ export default async function Home({
     terlama: "Data Terlama",
     terbanyak: "Stok Terbanyak",
     tersedikit: "Stok Tersedikit",
-    // terupdate: "Baru Diupdate"
   };
 
   return (
@@ -88,11 +86,12 @@ export default async function Home({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
-            <input type="hidden" name="kategori" value={filterKategori || ""} />
-            <input type="hidden" name="urutan" value={urutan} />
           </form>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            {/* LINK PRODUKSI DI TAMBAHKAN DISINI */}
+            <Link href="/produksi" className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500 hover:bg-orange-500 hover:text-white transition-all text-xs font-black uppercase tracking-widest">⚙️ Produksi</Link>
+            
             <Link href="/kategori" className="p-4 rounded-2xl bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-all text-xs font-black uppercase tracking-widest">🏷️ Kategori</Link>
             <Link href="/sampah" className="p-4 rounded-2xl bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-all text-xs font-black uppercase tracking-widest">🗑️ Sampah</Link>
             <Link href="/tambah" className="px-8 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black transition-all shadow-xl text-xs tracking-widest">+ TAMBAH UNIT</Link>
@@ -146,25 +145,11 @@ export default async function Home({
                           {rel.kategori.nama_kategori}
                         </span>
                       ))}
-                      
                       {extraCount > 0 && (
-                        <div className="relative group/popover">
-                          <button className="px-3 py-1.5 rounded-xl bg-white/5 text-slate-400 text-[9px] font-bold uppercase border border-white/10">
-                            +{extraCount}
-                          </button>
-                          <div className="absolute bottom-full mb-3 left-0 w-48 bg-[#0f1115] border border-white/10 rounded-2xl p-3 shadow-2xl opacity-0 invisible group-hover/popover:opacity-100 group-hover/popover:visible transition-all duration-200 z-50">
-                            <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-2 border-b border-white/5 pb-1">Kategori Lainnya</p>
-                            <div className="flex flex-col gap-1.5">
-                              {allKats.map((rel: any, idx: number) => (
-                                <span key={idx} className="text-[10px] text-slate-300 font-medium">
-                                  • {rel.kategori.nama_kategori}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                        <button className="px-3 py-1.5 rounded-xl bg-white/5 text-slate-400 text-[9px] font-bold uppercase border border-white/10">+{extraCount}</button>
                       )}
                     </div>
+                    <AdjustmentButton id={Number(item.id)} nama={item.nama} />
                     <Link href={`/edit/${item.id}`} className="bg-white/5 p-3 rounded-2xl text-[10px] font-black hover:bg-blue-600 hover:text-white transition-all border border-white/5 uppercase">Edit</Link>
                   </div>
 
@@ -172,15 +157,12 @@ export default async function Home({
                     {item.nama}
                   </h3>
 
-                  {/* TAMPILAN CATATAN - Diperkuat agar pasti tampil jika ada */}
-                  {item.catatan ? (
+                  {item.catatan && (
                     <div className="mb-4">
                       <p className="text-[10px] text-slate-400 italic line-clamp-3 border-l-2 border-blue-500/50 pl-3 py-1 bg-white/[0.02] rounded-r-lg">
                         "{item.catatan}"
                       </p>
                     </div>
-                  ) : (
-                    <div className="mb-4 h-[20px] opacity-0">-</div> 
                   )}
 
                   <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-8 opacity-80 mt-auto">
