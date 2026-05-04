@@ -24,6 +24,7 @@ export default function ProduksiPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [newQty, setNewQty] = useState("");
+  const [newWaste, setNewWaste] = useState(""); // State baru untuk Waste
   const [selectedParentId, setSelectedParentId] = useState("");
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function ProduksiPage() {
   const openCorrection = (log: any) => {
     setSelectedLog(log);
     setNewQty(Math.abs(log.change_amount).toString());
+    setNewWaste("0"); // Default waste saat buka modal
     setSelectedParentId(log.barang_id.toString());
     setIsModalOpen(true);
   };
@@ -62,7 +64,7 @@ export default function ProduksiPage() {
     formData.append("parentId", selectedParentId);
     formData.append("qty", newQty);
     formData.append("batchId", selectedLog.reference_id);
-    formData.append("waste", "0");
+    formData.append("waste", newWaste || "0"); // Mengirim nilai waste baru
 
     try {
       setLoading(true);
@@ -74,7 +76,6 @@ export default function ProduksiPage() {
     }
   };
 
-  // Ambil daftar unik material yang punya resep untuk dropdown koreksi
   const materialsWithRecipe = Array.from(new Set(bomList.map(b => b.parent_id))).map(pid => {
     return { id: pid, nama: bomList.find(b => b.parent_id === pid)?.parent?.nama };
   });
@@ -236,16 +237,30 @@ export default function ProduksiPage() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-orange-500 uppercase tracking-widest ml-1">New Production Cycles</label>
-                  <input 
-                    type="number" 
-                    value={newQty}
-                    onChange={(e) => setNewQty(e.target.value)}
-                    className="w-full bg-black/50 border border-white/10 p-5 rounded-2xl text-2xl font-black outline-none focus:border-orange-500 text-orange-500 transition-all"
-                    placeholder="0"
-                    required
-                  />
+                {/* Grid Input untuk Qty dan Waste */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-orange-500 uppercase tracking-widest ml-1">New Qty</label>
+                    <input 
+                      type="number" 
+                      value={newQty}
+                      onChange={(e) => setNewQty(e.target.value)}
+                      className="w-full bg-black/50 border border-white/10 p-5 rounded-2xl text-xl font-black outline-none focus:border-orange-500 text-orange-500 transition-all"
+                      placeholder="0"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">New Waste</label>
+                    <input 
+                      type="number"
+                      step="0.1"
+                      value={newWaste}
+                      onChange={(e) => setNewWaste(e.target.value)}
+                      className="w-full bg-black/50 border border-red-500/20 p-5 rounded-2xl text-xl font-black outline-none focus:border-red-500 text-red-400 transition-all"
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-2">
