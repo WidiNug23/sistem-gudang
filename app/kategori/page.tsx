@@ -27,10 +27,8 @@ export default function KategoriPage() {
     loadKategori();
   }, []);
 
-  // Fungsi pengecekan sebelum hapus (Kondisi 2)
+  // Fungsi pengecekan sebelum hapus
   const handleSafeDelete = async (id: number) => {
-    // Cek di tabel junction 'barang_kategori'
-    // Jika ada data di sini, berarti ada barang (aktif/sampah) yang memakai kategori ini
     const { count, error: checkError } = await supabase
       .from("barang_kategori")
       .select("*", { count: "exact", head: true })
@@ -41,13 +39,11 @@ export default function KategoriPage() {
       return;
     }
 
-    // Jika ditemukan barang yang menggunakan kategori ini
     if (count && count > 0) {
       alert("Gagal hapus: Kategori masih digunakan oleh barang.");
       return;
     }
 
-    // Jika aman, eksekusi Server Action
     try {
       await hapusKategori(id);
       await loadKategori(); 
@@ -72,27 +68,38 @@ export default function KategoriPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0f1115] p-6 md:p-10">
-      <div className="max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 w-full font-sans">
+      <div className="max-w-5xl mx-auto space-y-6">
         
-        {/* Header Section */}
-        <div className="flex justify-between items-end mb-12 border-b border-blue-500/20 pb-8">
-          <div>
-            <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
-              Category <span className="text-blue-500">Management</span>
-            </h1>
-            <p className="text-slate-500 mt-2 uppercase text-[10px] font-bold tracking-[0.3em]">Pengaturan Klasifikasi Inventaris</p>
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/" 
+              className="group flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/35 transition-all shadow-sm"
+              title="Kembali ke Beranda"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500 group-hover:text-orange-600 dark:group-hover:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </Link>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                Category Management
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">
+                Pengaturan Klasifikasi Inventaris
+              </p>
+            </div>
           </div>
-          <Link href="/" className="px-6 py-3 rounded-xl bg-white/5 text-slate-400 font-bold hover:bg-white/10 transition-all border border-white/5">
-            ← BACK
-          </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
           {/* Form Create/Edit */}
           <div className="md:col-span-1">
-            <div className={`bg-[#1a1d23] border ${editData ? 'border-amber-500/50' : 'border-white/10'} p-6 rounded-[32px] sticky top-10 transition-all`}>
-              <h2 className={`font-bold mb-4 uppercase text-xs tracking-widest ${editData ? 'text-amber-500' : 'text-white'}`}>
+            <div className={`bg-white dark:bg-slate-900 border ${editData ? 'border-amber-500/50' : 'border-slate-200 dark:border-slate-800'} p-6 rounded-2xl sticky top-6 transition-all shadow-sm`}>
+              <h2 className={`font-bold mb-4 uppercase text-xs tracking-wider ${editData ? 'text-amber-500' : 'text-slate-400'}`}>
                 {editData ? "Edit Category" : "Add New Category"}
               </h2>
               
@@ -104,15 +111,15 @@ export default function KategoriPage() {
                   name="nama_kategori" 
                   defaultValue={editData?.nama || ""}
                   placeholder="e.g. Elektronik" 
-                  className="w-full bg-black/40 border border-white/5 p-4 rounded-xl text-white outline-none focus:border-blue-500 transition-all text-sm placeholder:text-slate-700"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all placeholder:text-slate-400 shadow-sm"
                   required
                 />
                 
                 <div className="flex flex-col gap-2">
-                  <button type="submit" className={`w-full py-4 rounded-xl font-black text-[10px] tracking-[0.2em] transition-all ${
+                  <button type="submit" className={`w-full py-3.5 rounded-xl font-bold text-xs transition-all shadow-sm ${
                     editData 
-                    ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_20px_rgba(245,158,11,0.2)]' 
-                    : 'bg-blue-600 hover:bg-blue-500 text-white'
+                      ? 'bg-amber-600 hover:bg-amber-700 text-white' 
+                      : 'bg-orange-600 hover:bg-orange-700 text-white'
                   }`}>
                     {editData ? "UPDATE CHANGES" : "CREATE CATEGORY"}
                   </button>
@@ -124,7 +131,7 @@ export default function KategoriPage() {
                         setEditData(null);
                         formRef.current?.reset();
                       }}
-                      className="w-full py-2 text-[9px] font-bold text-slate-500 uppercase hover:text-white transition-colors"
+                      className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                     >
                       Cancel Edit
                     </button>
@@ -137,36 +144,36 @@ export default function KategoriPage() {
           {/* List Categories */}
           <div className="md:col-span-2 space-y-3">
             {isLoading ? (
-               <p className="text-slate-600 italic text-sm p-10 text-center">Synchronizing database...</p>
+               <p className="text-slate-400 italic text-xs p-10 text-center">Synchronizing database...</p>
             ) : kategori.length === 0 ? (
-               <p className="text-slate-600 italic text-sm p-10 text-center">No categories found.</p>
+               <p className="text-slate-400 italic text-xs p-10 text-center">No categories found.</p>
             ) : (
               kategori.map((item) => (
-                <div key={item.id} className={`group flex justify-between items-center bg-[#1a1d23] border p-5 rounded-2xl transition-all ${
-                  editData?.id === item.id ? 'border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-white/5 hover:border-blue-500/30'
+                <div key={item.id} className={`group flex justify-between items-center bg-white dark:bg-slate-900 border p-4 rounded-2xl transition-all shadow-sm ${
+                  editData?.id === item.id ? 'border-amber-500/50 shadow-sm' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}>
-                  <div className="flex items-center gap-4">
-                    <span className="text-slate-600 font-mono text-xs">#{item.id}</span>
-                    <p className="text-white font-bold uppercase tracking-tight">{item.nama_kategori}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-400 font-mono text-xs">#{item.id}</span>
+                    <p className="text-slate-900 dark:text-white font-bold text-xs uppercase tracking-tight">{item.nama_kategori}</p>
                   </div>
                   
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-4">
                     <button 
                       onClick={() => {
                         setEditData({ id: item.id, nama: item.nama_kategori });
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="text-[10px] font-black text-blue-500/50 hover:text-blue-500 tracking-widest transition-all"
+                      className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-all uppercase px-2 py-1 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 rounded-lg"
                     >
-                      EDIT
+                      Edit
                     </button>
 
                     <DeleteButton 
                       id={Number(item.id)} 
-                      action={handleSafeDelete} // Menggunakan logika pengaman baru
-                      label="DELETE" 
+                      action={handleSafeDelete}
+                      label="Delete" 
                       confirmMsg="Hapus kategori ini? Pastikan tidak ada barang yang menggunakannya." 
-                      className="text-[10px] font-black text-red-500/30 hover:text-red-500 tracking-widest transition-colors"
+                      className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 transition-colors px-2.5 py-1 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg"
                     />
                   </div>
                 </div>
@@ -175,6 +182,6 @@ export default function KategoriPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

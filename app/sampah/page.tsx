@@ -22,33 +22,40 @@ export default async function SampahPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0f1115] p-6 md:p-10 font-sans text-slate-200">
-      <div className="max-w-5xl mx-auto">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-red-500/20 pb-8 gap-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="bg-red-500/20 text-red-500 p-2 rounded-lg text-2xl shadow-[0_0_20px_rgba(239,68,68,0.2)]">🗑️</span>
-              <h1 className="text-4xl font-black text-red-500 tracking-tighter uppercase">Deleted Items</h1>
+    <div className="p-4 md:p-8 w-full font-sans">
+      <div className="max-w-5xl mx-auto space-y-6">
+        
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/" 
+              className="group flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/35 transition-all shadow-sm"
+              title="Kembali ke Beranda"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500 group-hover:text-orange-600 dark:group-hover:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </Link>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <span className="text-red-500 dark:text-red-400 text-lg">🗑️</span>
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  Deleted Items
+                </h1>
+              </div>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">
+                Arsip Pembuangan Sementara • Total: {sampah?.length || 0} Unit
+              </p>
             </div>
-            <p className="text-slate-500 uppercase text-[10px] font-bold tracking-[0.3em] ml-1">
-              Arsip Pembuangan Sementara • Total: {sampah?.length || 0} Unit
-            </p>
           </div>
-          <Link 
-            href="/" 
-            className="px-6 py-3 rounded-xl bg-white/5 text-slate-400 font-bold hover:bg-white/10 transition-all border border-white/5 flex items-center gap-2 group"
-          >
-            <span className="group-hover:-translate-x-1 transition-transform">←</span> 
-            DASHBOARD
-          </Link>
         </div>
 
         {/* List Section */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {(!sampah || sampah.length === 0) ? (
-            <div className="text-center py-20 bg-[#1a1d23] rounded-[32px] border border-dashed border-white/10">
-              <p className="text-slate-600 font-medium italic tracking-widest uppercase text-xs">
+            <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 shadow-sm">
+              <p className="text-slate-400 font-medium italic text-xs">
                 Tidak ada data di tempat pembuangan
               </p>
             </div>
@@ -61,29 +68,29 @@ export default async function SampahPage() {
               return (
                 <div 
                   key={item.id} 
-                  className="group flex flex-col md:flex-row justify-between items-center bg-[#1a1d23] border border-white/5 p-6 rounded-[24px] hover:border-red-500/30 transition-all shadow-xl"
+                  className="group flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm gap-4"
                 >
                   <div className="flex flex-col md:flex-row items-start gap-6 w-full">
                     {/* Info Barang */}
-                    <div className="flex-1 w-full">
-                      <div className="flex flex-wrap items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-white group-hover:text-red-400 transition-colors uppercase tracking-tight">
+                    <div className="flex-1 w-full space-y-2">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">
                           {item.nama}
                         </h3>
 
                         {allKats.length > 0 && (
                           <details className="relative group/details cursor-pointer">
                             <summary className="list-none outline-none">
-                              <span className="px-3 py-1 rounded-md bg-red-500/10 text-red-400 text-[9px] font-black uppercase tracking-tighter border border-red-500/20 hover:bg-red-500 hover:text-white transition-all inline-block">
+                              <span className="px-2.5 py-1 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-[11px] font-bold border border-red-200 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all inline-block">
                                 {kategoriTampil} {sisaKategori > 0 && `+${sisaKategori}`} ▼
                               </span>
                             </summary>
-                            <div className="absolute left-0 top-full mt-2 z-[100] w-max min-w-[150px] bg-[#0f1115] border border-white/10 rounded-xl p-3 shadow-2xl animate-in fade-in zoom-in duration-200">
-                              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2 border-b border-white/5 pb-1">Semua Label:</p>
+                            <div className="absolute left-0 top-full mt-2 z-[100] w-max min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xl">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">Semua Label:</p>
                               <div className="flex flex-col gap-1.5">
                                 {allKats.map((rel: any, idx: number) => (
-                                  <span key={idx} className="text-[10px] text-slate-300 font-bold uppercase whitespace-nowrap flex items-center gap-2">
-                                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                                  <span key={idx} className="text-xs text-slate-700 dark:text-slate-300 font-semibold uppercase whitespace-nowrap flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
                                     {rel.kategori?.nama_kategori}
                                   </span>
                                 ))}
@@ -93,33 +100,31 @@ export default async function SampahPage() {
                         )}
                       </div>
 
-                      {/* TAMPILAN CATATAN (DITAMBAHKAN DI SINI) */}
-                      {item.catatan ? (
-                        <div className="mb-4 mt-1">
-                          <p className="text-[11px] text-slate-500 italic bg-black/20 p-3 rounded-xl border-l-2 border-red-500/30 max-w-2xl leading-relaxed">
+                      {/* TAMPILAN CATATAN */}
+                      {item.catatan && (
+                        <div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border-l-2 border-red-500 max-w-2xl leading-relaxed">
                             "{item.catatan}"
                           </p>
                         </div>
-                      ) : (
-                        <div className="mb-2"></div>
                       )}
 
-                      <div className="flex items-center gap-4">
-                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                          <span className="opacity-50">📍</span> {item.lokasi || "N/A"}
+                      <div className="flex items-center gap-4 pt-1">
+                        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                          <span className="opacity-70">📍</span> {item.lokasi || "N/A"}
                         </p>
-                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                          <span className="opacity-50">📦</span> Stock: <span className="text-slate-300 font-black">{item.jumlah}</span>
+                        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                          <span className="opacity-70">📦</span> Stock: <span className="text-slate-900 dark:text-white font-bold">{item.jumlah}</span>
                         </p>
                       </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-3 w-full md:w-auto mt-6 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-white/5 self-center">
+                    <div className="flex items-center gap-2.5 w-full md:w-auto mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800 self-center">
                       <form action={restoreBarang.bind(null, item.id)} className="flex-1 md:flex-none">
                         <button 
                           type="submit" 
-                          className="w-full md:w-auto px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-500 text-[10px] font-black hover:bg-emerald-500 hover:text-white transition-all uppercase tracking-widest active:scale-95"
+                          className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all uppercase border border-emerald-200 dark:border-emerald-900/50 cursor-pointer"
                         >
                           Restore
                         </button>
@@ -130,7 +135,7 @@ export default async function SampahPage() {
                         action={hapusPermanen} 
                         label="Destroy" 
                         confirmMsg="PERINGATAN: Data akan dihapus permanen. Lanjutkan?" 
-                        className="flex-1 md:flex-none px-6 py-3 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest active:scale-95 border border-red-500/10"
+                        className="flex-1 md:flex-none px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/40 transition-all uppercase border border-red-200 dark:border-red-900/50 cursor-pointer"
                       />
                     </div>
                   </div>
@@ -139,11 +144,7 @@ export default async function SampahPage() {
             })
           )}
         </div>
-
-        <p className="mt-10 text-center text-slate-600 text-[9px] font-bold uppercase tracking-[0.5em] opacity-30">
-          Industrial Logic System v1.0
-        </p>
       </div>
-    </main>
+    </div>
   );
 }

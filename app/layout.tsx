@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google"; // Impor font Geist
-import "./globals.css"; // Pastikan globals.css diimpor jika ada
+import { Geist } from "next/font/google";
+import "./globals.css";
+import Navbar from "./components/Navbar";
 
-// 1. Inisialisasi font Geist
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Production System",
-  description: "Manufacturing Execution System",
+  title: "GudangPro - Manajemen Logistik",
+  description: "Management & Logistics Dashboard",
 };
 
 export default function RootLayout({
@@ -20,19 +20,35 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="scroll-smooth" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
       <body 
-        // 2. Sekarang geistSans sudah terdefinisi dan bisa digunakan
-        className={`${geistSans.variable} font-sans antialiased bg-[#0f1115] text-slate-200 selection:bg-blue-500 selection:text-white`}
+        className={`${geistSans.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col`}
         suppressHydrationWarning={true}
       >
-        <div className="relative min-h-screen flex flex-col">
-          {/* Overlay Noise */}
-          <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-[9999]"></div>
-          
-          <main className="flex-1">
-            {children}
-          </main>
-        </div>
+        {/* Navbar Global di Setiap Halaman */}
+        <Navbar />
+
+        <main className="flex-1 flex flex-col max-w-7xl w-full mx-auto">
+          {children}
+        </main>
+
+        <footer className="py-6 text-center border-t border-slate-200 dark:border-slate-800 mt-auto">
+          <p className="text-slate-400 text-xs font-medium">Widi Nugroho &copy; 2026</p>
+        </footer>
       </body>
     </html>
   );

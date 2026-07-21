@@ -12,54 +12,115 @@ export default async function TambahPage() {
     .order("nama_kategori", { ascending: true });
 
   return (
-    <main className="min-h-screen bg-[#0f1115] flex items-center justify-center p-4 md:p-6">
-      <div className="bg-[#1a1d23] border border-white/10 p-8 md:p-12 rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-lg relative overflow-hidden">
-        <div className="mb-10 relative z-10">
-          <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic">
-            Input <span className="text-blue-500">Logistics</span>
-          </h1>
-          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-2 border-l-2 border-blue-500 pl-3">
-            Register New Inventory Unit
-          </p>
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 md:p-6 font-sans transition-colors">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 md:p-10 rounded-2xl shadow-sm w-full max-w-3xl relative overflow-hidden">
+        
+        {/* Header */}
+        <div className="mb-8 border-b border-slate-100 dark:border-slate-800 pb-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Input <span className="text-orange-600 dark:text-orange-400">Logistics</span>
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1 border-l-2 border-orange-500 pl-3">
+              Tambahkan barang baru atau barang yang akan dibuat
+            </p>
+          </div>
+          <Link 
+            href="/" 
+            className="flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/35 transition-all shadow-sm"
+            title="Kembali ke Beranda"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500 hover:text-orange-600 dark:hover:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
         </div>
 
-        <form action={tambahBarang} className="space-y-6 relative z-10">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Item Designation</label>
-            <input name="nama" className="w-full bg-black/40 border border-white/5 p-5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" required />
-          </div>
+        <form action={tambahBarang} className="space-y-5">
+          
+          {/* Grid Layout 2 Kolom untuk Efisiensi Ruang */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
+            {/* Kolom Kiri: Nama & Kategori */}
+            <div className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">
+                  Nama Barang
+                </label>
+                <input 
+                  name="nama" 
+                  placeholder="Contoh: Kayu Jati"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all shadow-sm placeholder:text-slate-400" 
+                  required 
+                />
+              </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Sector Classification</label>
-            <KategoriSelector allKategori={daftarKategori || []} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-               <label className="text-[9px] font-bold text-slate-600 uppercase ml-2">Quantity</label>
-               <input name="jumlah" type="number" className="w-full bg-black/40 border border-white/5 p-5 rounded-2xl text-white outline-none focus:border-blue-500" required />
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">
+                  Pilih Kategori (Opsional)
+                </label>
+                <KategoriSelector allKategori={daftarKategori || []} />
+              </div>
             </div>
-            <div className="space-y-1">
-               <label className="text-[9px] font-bold text-slate-600 uppercase ml-2">Position</label>
-               <input name="lokasi" className="w-full bg-black/40 border border-white/5 p-5 rounded-2xl text-white outline-none focus:border-blue-500" />
+
+            {/* Kolom Kanan: Kuantitas, Posisi, dan Catatan */}
+            <div className="space-y-5 flex flex-col justify-between">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">
+                    Quantity (Jumlah)
+                  </label>
+                  <input 
+                    name="jumlah" 
+                    type="number" 
+                    placeholder="0"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all shadow-sm placeholder:text-slate-400" 
+                    required 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">
+                    Lokasi Barang 
+                  </label>
+                  <input 
+                    name="lokasi" 
+                    placeholder="Contoh: Etalase 8"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all shadow-sm placeholder:text-slate-400" 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5 flex-1 flex flex-col">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">
+                  Catatan Tambahan
+                </label>
+                <textarea 
+                  name="catatan" 
+                  rows={3} 
+                  placeholder="Tambahkan detail atau spesifikasi barang..."
+                  className="w-full flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all resize-none shadow-sm placeholder:text-slate-400"
+                />
+              </div>
             </div>
+
           </div>
 
-          {/* INPUT CATATAN */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Additional Notes</label>
-            <textarea 
-              name="catatan" 
-              rows={3} 
-              placeholder="Tambahkan detail atau spesifikasi barang..."
-              className="w-full bg-black/40 border border-white/5 p-5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all resize-none"
-            />
+          {/* Action Buttons */}
+          <div className="flex flex-col md:flex-row gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <button 
+              type="submit" 
+              className="flex-[2] bg-orange-600 hover:bg-orange-700 text-white py-3.5 rounded-xl font-bold tracking-wider transition-all uppercase text-xs shadow-sm cursor-pointer active:scale-95"
+            >
+              Tambah Barang
+            </button>
+            <Link 
+              href="/" 
+              className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 py-3.5 rounded-xl font-bold text-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 uppercase text-xs flex items-center justify-center active:scale-95"
+            >
+              Batal
+            </Link>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 pt-6">
-            <button type="submit" className="flex-[2] bg-blue-600 text-white py-5 rounded-2xl font-black tracking-widest hover:bg-blue-500 transition-all uppercase text-xs">PROCESS DATA</button>
-            <Link href="/" className="flex-1 bg-white/5 text-slate-400 py-5 rounded-2xl font-bold text-center hover:bg-white/10 transition-all border border-white/5 uppercase text-[10px] flex items-center justify-center">Abort</Link>
-          </div>
         </form>
       </div>
     </main>

@@ -111,13 +111,47 @@ export async function adjustStok(formData: FormData) {
   revalidatePath("/produksi");
 }
 
+export async function saveResep(formData: FormData) {
+  const parent_id = parseInt(formData.get("pId") as string);
+  const child_id = parseInt(formData.get("cId") as string);
+  const quantity_required = parseFloat(formData.get("qtyReq") as string) || 1;
+  const quantity_produced = parseFloat(formData.get("qty") as string) || 1;
+
+  if (!parent_id || !child_id) {
+    throw new Error("Raw material dan hasil produk harus dipilih.");
+  }
+
+  const { error } = await supabase.from("bom").insert({
+    parent_id,
+    child_id,
+    quantity_required,
+    quantity_produced
+  });
+
+  if (error) {
+    throw new Error("Gagal menyimpan resep: " + error.message);
+  }
+
+  revalidatePath("/produksi");
+}
+
+export async function hapusResepBOM(id: number) {
+  const { error } = await supabase.from("bom").delete().eq("id", id);
+  if (error) {
+    throw new Error("Gagal menghapus resep: " + error.message);
+  }
+  revalidatePath("/produksi");
+}
+
 export async function submitProduksi(formData: FormData) {
+  const bomId = formData.get("bomId") as string;
   const parentId = parseInt(formData.get("parentId") as string);
-  const cycles = parseInt(formData.get("qty") as string);
+  const cycles = parseFloat(formData.get("qty") as string) || 1; // Multiplier
+  const rawUsageQty = parseFloat(formData.get("rawUsageQty") as string) || 1; // Jumlah raw material aktual yang dipakai
   const waste = parseFloat(formData.get("waste") as string) || 0;
   const existingBatchId = formData.get("batchId") as string; 
 
-  if (isNaN(parentId) || isNaN(cycles) || cycles <= 0) {
+  if (isNaN(cycles) || cycles <= 0 || isNaN(rawUsageQty) || rawUsageQty <= 0) {
     throw new Error("Input produksi tidak valid.");
   }
 
@@ -139,32 +173,41 @@ export async function submitProduksi(formData: FormData) {
     }
   }
 
-  const { data: recipe } = await supabase
-    .from("bom")
-    .select("quantity_produced, child_id")
-    .eq("parent_id", parentId)
-    .single();
+  // 2. Query resep berdasarkan bomId unik atau fallback ke parent_id
+  const query = supabase.from("bom").select("id, quantity_produced, quantity_required, parent_id, child_id");
+  
+  if (bomId && bomId !== "") {
+    query.eq("id", parseInt(bomId));
+  } else {
+    query.eq("parent_id", parentId);
+  }
+
+  const { data: recipe } = await query.single();
 
   if (!recipe) throw new Error("Resep tidak ditemukan.");
 
-  const totalProduced = cycles * recipe.quantity_produced;
+  const activeParentId = recipe.parent_id;
+  
+  // Kalkulasi total hasil produksi berdasarkan rasio resep dan multiplier
+  const actualOutput = rawUsageQty * recipe.quantity_produced * cycles;
+  const totalRawUsed = rawUsageQty * cycles;
   const currentBatchId = (existingBatchId && existingBatchId !== "") ? existingBatchId : `BATCH-${Date.now()}`;
 
-  // 2. Eksekusi Stok Baru
-  await supabase.rpc('increment_stock', { row_id: parentId, amount: -cycles });
-  await supabase.rpc('increment_stock', { row_id: recipe.child_id, amount: totalProduced });
+  // 3. Eksekusi Pengurangan Stok Raw Material & Penambahan Stok Hasil Output
+  await supabase.rpc('increment_stock', { row_id: activeParentId, amount: -totalRawUsed });
+  await supabase.rpc('increment_stock', { row_id: recipe.child_id, amount: actualOutput });
 
   const finalLogs = [
     {
-      barang_id: parentId,
-      change_amount: -cycles,
+      barang_id: activeParentId,
+      change_amount: -totalRawUsed,
       type: 'PRODUKSI_OUT',
-      reason: `Produksi ${totalProduced} unit (Batch: ${currentBatchId})`,
+      reason: `Penggunaan material untuk produksi ${actualOutput} unit (Batch: ${currentBatchId})`,
       reference_id: currentBatchId
     },
     {
       barang_id: recipe.child_id,
-      change_amount: totalProduced,
+      change_amount: actualOutput,
       type: 'PRODUKSI_IN',
       reason: `Hasil produksi (Batch: ${currentBatchId})`,
       reference_id: currentBatchId
@@ -172,9 +215,9 @@ export async function submitProduksi(formData: FormData) {
   ];
 
   if (waste > 0) {
-    await supabase.rpc('increment_stock', { row_id: parentId, amount: -waste });
+    await supabase.rpc('increment_stock', { row_id: activeParentId, amount: -waste });
     finalLogs.push({
-      barang_id: parentId,
+      barang_id: activeParentId,
       change_amount: -waste,
       type: 'WASTE',
       reason: `Waste produksi (Batch: ${currentBatchId})`,
@@ -185,28 +228,6 @@ export async function submitProduksi(formData: FormData) {
   await supabase.from("stock_logs").insert(finalLogs);
 
   revalidatePath("/");
-  revalidatePath("/produksi");
-}
-
-export async function saveResep(formData: FormData) {
-  const pId = parseInt(formData.get("pId") as string);
-  const cId = parseInt(formData.get("cId") as string);
-  const qty = parseInt(formData.get("qty") as string);
-
-  if (!pId || !cId || isNaN(qty)) throw new Error("Data resep tidak lengkap.");
-
-  const { error } = await supabase
-    .from("bom")
-    .insert([{ parent_id: pId, child_id: cId, quantity_produced: qty }]);
-
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/produksi");
-}
-
-export async function hapusResepBOM(id: number) {
-  const { error } = await supabase.from("bom").delete().eq( "id", id);
-  if (error) throw error;
   revalidatePath("/produksi");
 }
 

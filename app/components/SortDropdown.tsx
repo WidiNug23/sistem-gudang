@@ -23,19 +23,19 @@ export default function SortDropdown({
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group font-sans">
       <select 
         onChange={(e) => handleChange(e.target.value)}
         value={currentUrutan}
-        className="w-full bg-black/40 border border-white/10 p-4 rounded-2xl text-white text-[11px] font-black uppercase tracking-wider outline-none appearance-none cursor-pointer focus:border-blue-500 transition-all"
+        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3.5 pr-10 rounded-xl text-slate-900 dark:text-white text-xs font-semibold uppercase tracking-wider outline-none appearance-none cursor-pointer focus:border-orange-500 transition-all shadow-sm"
       >
         {Object.entries(options).map(([key, label]) => (
-          <option key={key} value={key} className="bg-[#1a1d23]">
+          <option key={key} value={key} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
             {label}
           </option>
         ))}
       </select>
-      <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-blue-500 text-xs">
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 text-xs transition-colors">
         ▼
       </div>
     </div>
