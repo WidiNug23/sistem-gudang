@@ -18,7 +18,7 @@ export default async function TambahPage() {
         {/* Header */}
         <div className="mb-8 border-b border-slate-100 dark:border-slate-800 pb-5 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
               Input <span className="text-orange-600 dark:text-orange-400">Logistics</span>
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1 border-l-2 border-orange-500 pl-3">

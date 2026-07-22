@@ -127,7 +127,7 @@ export default function ProduksiPage() {
               </svg>
             </Link>
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
                 Production Control
               </h1>
               <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">

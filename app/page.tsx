@@ -74,7 +74,7 @@ export default async function Home({
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
         <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-slate-500 dark:text-white">
             Manajemen Gudang
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">

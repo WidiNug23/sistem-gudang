@@ -10,6 +10,10 @@ export default function KategoriPage() {
   const [kategori, setKategori] = useState<any[]>([]);
   const [editData, setEditData] = useState<{ id: number; nama: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // State kustom untuk menggantikan alert browser (notifikasi/pesan modal)
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
+  
   const formRef = useRef<HTMLFormElement>(null);
 
   // Fungsi untuk memuat data kategori
@@ -27,7 +31,7 @@ export default function KategoriPage() {
     loadKategori();
   }, []);
 
-  // Fungsi pengecekan sebelum hapus
+  // Fungsi pengecekan sebelum hapus dengan modal kustom
   const handleSafeDelete = async (id: number) => {
     const { count, error: checkError } = await supabase
       .from("barang_kategori")
@@ -35,12 +39,12 @@ export default function KategoriPage() {
       .eq("kategori_id", id);
 
     if (checkError) {
-      alert("Database error: Gagal melakukan verifikasi relasi.");
+      setModalMessage("Database error: Gagal melakukan verifikasi relasi.");
       return;
     }
 
     if (count && count > 0) {
-      alert("Gagal hapus: Kategori masih digunakan oleh barang.");
+      setModalMessage("Gagal hapus: Kategori masih digunakan oleh barang termasuk barang di Sampah.");
       return;
     }
 
@@ -48,7 +52,7 @@ export default function KategoriPage() {
       await hapusKategori(id);
       await loadKategori(); 
     } catch (err) {
-      alert("Terjadi kesalahan sistem saat menghapus.");
+      setModalMessage("Terjadi kesalahan sistem saat menghapus.");
     }
   };
 
@@ -84,10 +88,10 @@ export default function KategoriPage() {
               </svg>
             </Link>
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
                 Category Management
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider mt-0.5">
                 Pengaturan Klasifikasi Inventaris
               </p>
             </div>
@@ -99,7 +103,7 @@ export default function KategoriPage() {
           {/* Form Create/Edit */}
           <div className="md:col-span-1">
             <div className={`bg-white dark:bg-slate-900 border ${editData ? 'border-amber-500/50' : 'border-slate-200 dark:border-slate-800'} p-6 rounded-2xl sticky top-6 transition-all shadow-sm`}>
-              <h2 className={`font-bold mb-4 uppercase text-xs tracking-wider ${editData ? 'text-amber-500' : 'text-slate-400'}`}>
+              <h2 className={`font-black mb-4 uppercase text-xs tracking-wider ${editData ? 'text-amber-500' : 'text-slate-400'}`}>
                 {editData ? "Edit Category" : "Add New Category"}
               </h2>
               
@@ -111,17 +115,17 @@ export default function KategoriPage() {
                   name="nama_kategori" 
                   defaultValue={editData?.nama || ""}
                   placeholder="e.g. Elektronik" 
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all placeholder:text-slate-400 shadow-sm"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all placeholder:text-slate-400 shadow-sm"
                   required
                 />
                 
                 <div className="flex flex-col gap-2">
-                  <button type="submit" className={`w-full py-3.5 rounded-xl font-bold text-xs transition-all shadow-sm ${
+                  <button type="submit" className={`w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer ${
                     editData 
                       ? 'bg-amber-600 hover:bg-amber-700 text-white' 
                       : 'bg-orange-600 hover:bg-orange-700 text-white'
                   }`}>
-                    {editData ? "UPDATE CHANGES" : "CREATE CATEGORY"}
+                    {editData ? "Update Changes" : "Create Category"}
                   </button>
 
                   {editData && (
@@ -144,9 +148,13 @@ export default function KategoriPage() {
           {/* List Categories */}
           <div className="md:col-span-2 space-y-3">
             {isLoading ? (
-               <p className="text-slate-400 italic text-xs p-10 text-center">Synchronizing database...</p>
+               <div className="py-20 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/50">
+                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Synchronizing database...</p>
+               </div>
             ) : kategori.length === 0 ? (
-               <p className="text-slate-400 italic text-xs p-10 text-center">No categories found.</p>
+               <div className="py-20 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/50">
+                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">No categories found.</p>
+               </div>
             ) : (
               kategori.map((item) => (
                 <div key={item.id} className={`group flex justify-between items-center bg-white dark:bg-slate-900 border p-4 rounded-2xl transition-all shadow-sm ${
@@ -157,13 +165,14 @@ export default function KategoriPage() {
                     <p className="text-slate-900 dark:text-white font-bold text-xs uppercase tracking-tight">{item.nama_kategori}</p>
                   </div>
                   
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
                     <button 
+                      type="button"
                       onClick={() => {
                         setEditData({ id: item.id, nama: item.nama_kategori });
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-all uppercase px-2 py-1 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 rounded-lg"
+                      className="text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:bg-orange-100 transition-all uppercase px-3 py-1.5 bg-orange-50 dark:bg-orange-950/30 rounded-lg cursor-pointer"
                     >
                       Edit
                     </button>
@@ -172,16 +181,43 @@ export default function KategoriPage() {
                       id={Number(item.id)} 
                       action={handleSafeDelete}
                       label="Delete" 
-                      confirmMsg="Hapus kategori ini? Pastikan tidak ada barang yang menggunakannya." 
-                      className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 transition-colors px-2.5 py-1 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg"
+                      confirmMsg={`Hapus kategori "${item.nama_kategori}"?`} 
+                      className="text-[11px] font-bold text-red-600 dark:text-red-400 hover:bg-red-100 transition-all uppercase px-3 py-1.5 bg-red-50 dark:bg-red-950/30 rounded-lg cursor-pointer"
                     />
                   </div>
                 </div>
               ))
             )}
           </div>
+
         </div>
       </div>
+
+      {/* MODAL NOTIFIKASI KUSTOM (Pengganti Alert Bawaan Browser) */}
+      {modalMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 w-full max-w-sm shadow-lg text-center">
+            
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">
+              Informasi Peringatan
+            </h3>
+            
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 leading-relaxed">
+              {modalMessage}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setModalMessage(null)}
+              className="w-full px-4 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition-all cursor-pointer"
+            >
+              Mengerti
+            </button>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

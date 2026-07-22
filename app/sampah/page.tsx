@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { restoreBarang, hapusPermanen } from "../actions";
 import Link from "next/link";
 import DeleteButton from "../components/DeleteButton";
+import RestoreButton from "../components/RestoreButton"; // Komponen baru untuk konfirmasi restore
 
 export const revalidate = 0;
 
@@ -22,129 +23,136 @@ export default async function SampahPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 w-full font-sans">
-      <div className="max-w-5xl mx-auto space-y-6">
-        
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
-          <div className="flex items-center gap-4">
-            <Link 
-              href="/" 
-              className="group flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/35 transition-all shadow-sm"
-              title="Kembali ke Beranda"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500 group-hover:text-orange-600 dark:group-hover:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <span className="text-red-500 dark:text-red-400 text-lg">🗑️</span>
-                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                  Deleted Items
-                </h1>
-              </div>
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">
-                Arsip Pembuangan Sementara • Total: {sampah?.length || 0} Unit
-              </p>
-            </div>
+    <div className="p-4 md:p-8 w-full font-sans max-w-6xl mx-auto">
+      
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Link 
+            href="/" 
+            className="flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
+            title="Kembali ke Beranda"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+              Sampah
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold tracking-wider uppercase mt-0.5">
+              Total Sampah: {sampah?.length || 0} Unit
+            </p>
           </div>
         </div>
-
-        {/* List Section */}
-        <div className="space-y-3">
-          {(!sampah || sampah.length === 0) ? (
-            <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 shadow-sm">
-              <p className="text-slate-400 font-medium italic text-xs">
-                Tidak ada data di tempat pembuangan
-              </p>
-            </div>
-          ) : (
-            sampah.map((item) => {
-              const allKats = item.daftar_kategori || [];
-              const kategoriTampil = allKats[0]?.kategori?.nama_kategori || "Umum";
-              const sisaKategori = allKats.length - 1;
-
-              return (
-                <div 
-                  key={item.id} 
-                  className="group flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm gap-4"
-                >
-                  <div className="flex flex-col md:flex-row items-start gap-6 w-full">
-                    {/* Info Barang */}
-                    <div className="flex-1 w-full space-y-2">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">
-                          {item.nama}
-                        </h3>
-
-                        {allKats.length > 0 && (
-                          <details className="relative group/details cursor-pointer">
-                            <summary className="list-none outline-none">
-                              <span className="px-2.5 py-1 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-[11px] font-bold border border-red-200 dark:border-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all inline-block">
-                                {kategoriTampil} {sisaKategori > 0 && `+${sisaKategori}`} ▼
-                              </span>
-                            </summary>
-                            <div className="absolute left-0 top-full mt-2 z-[100] w-max min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xl">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">Semua Label:</p>
-                              <div className="flex flex-col gap-1.5">
-                                {allKats.map((rel: any, idx: number) => (
-                                  <span key={idx} className="text-xs text-slate-700 dark:text-slate-300 font-semibold uppercase whitespace-nowrap flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                                    {rel.kategori?.nama_kategori}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </details>
-                        )}
-                      </div>
-
-                      {/* TAMPILAN CATATAN */}
-                      {item.catatan && (
-                        <div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border-l-2 border-red-500 max-w-2xl leading-relaxed">
-                            "{item.catatan}"
-                          </p>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-4 pt-1">
-                        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                          <span className="opacity-70">📍</span> {item.lokasi || "N/A"}
-                        </p>
-                        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                          <span className="opacity-70">📦</span> Stock: <span className="text-slate-900 dark:text-white font-bold">{item.jumlah}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2.5 w-full md:w-auto mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800 self-center">
-                      <form action={restoreBarang.bind(null, item.id)} className="flex-1 md:flex-none">
-                        <button 
-                          type="submit" 
-                          className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all uppercase border border-emerald-200 dark:border-emerald-900/50 cursor-pointer"
-                        >
-                          Restore
-                        </button>
-                      </form>
-
-                      <DeleteButton 
-                        id={Number(item.id)} 
-                        action={hapusPermanen} 
-                        label="Destroy" 
-                        confirmMsg="PERINGATAN: Data akan dihapus permanen. Lanjutkan?" 
-                        className="flex-1 md:flex-none px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/40 transition-all uppercase border border-red-200 dark:border-red-900/50 cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
       </div>
+
+      {/* LIST SECTION / TABLE LAYOUT */}
+      {!sampah || sampah.length === 0 ? (
+        <div className="py-20 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/50">
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">
+            Tidak ada data di tempat pembuangan.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/80">
+                  <th className="py-3.5 px-5">Nama Barang</th>
+                  <th className="py-3.5 px-5">Kategori</th>
+                  <th className="py-3.5 px-5">Lokasi</th>
+                  <th className="py-3.5 px-5 text-center">Stok</th>
+                  <th className="py-3.5 px-5">Catatan</th>
+                  <th className="py-3.5 px-5 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                {sampah.map((item) => {
+                  const allKats = item.daftar_kategori || [];
+                  const displayKats = allKats.slice(0, 2);
+                  const extraCount = allKats.length - 2;
+
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                      
+                      {/* Nama Barang */}
+                      <td className="py-3.5 px-5 font-bold text-slate-900 dark:text-white tracking-wide">
+                        {item.nama}
+                      </td>
+
+                      {/* Kategori */}
+                      <td className="py-3.5 px-5">
+                        <div className="flex flex-wrap gap-1">
+                          {displayKats.map((rel: any, idx: number) => (
+                            <span key={idx} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase tracking-wider">
+                              {rel.kategori?.nama_kategori}
+                            </span>
+                          ))}
+                          {extraCount > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-400 text-[10px] font-bold">
+                              +{extraCount}
+                            </span>
+                          )}
+                          {allKats.length === 0 && (
+                            <span className="text-slate-400 font-medium">-</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Lokasi */}
+                      <td className="py-3.5 px-5 text-slate-500 dark:text-slate-400 font-semibold tracking-wide">
+                        {item.lokasi || "Gudang Utama"}
+                      </td>
+
+                      {/* Stok */}
+                      <td className="py-3.5 px-5 text-center">
+                        <span className="inline-block px-2.5 py-1 rounded-md font-black tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+                          {item.jumlah}
+                        </span>
+                      </td>
+
+                      {/* Catatan */}
+                      <td className="py-3.5 px-5 text-slate-500 dark:text-slate-400 max-w-xs truncate font-medium">
+                        {item.catatan || "-"}
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="py-3.5 px-5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          
+                          <RestoreButton 
+                            id={Number(item.id)}
+                            action={restoreBarang}
+                            label="Restore"
+                            title="Konfirmasi Restore"
+                            confirmMsg={`Apakah Anda yakin ingin memulihkan data "${item.nama}" kembali ke daftar barang aktif?`}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 text-emerald-600 dark:text-emerald-400 font-bold transition-all text-[11px] uppercase tracking-wider cursor-pointer"
+                          />
+
+                          <DeleteButton 
+                            id={Number(item.id)} 
+                            itemName={item.nama}
+                            action={hapusPermanen} 
+                            label="Destroy" 
+                            confirmMsg={`Data "${item.nama}" akan dihapus permanen dan tidak dapat dikembalikan.`} 
+                            requireNameMatch={true}
+                            className="px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/30 hover:bg-red-100 text-red-600 dark:text-red-400 font-bold transition-all text-[11px] uppercase tracking-wider cursor-pointer"
+                          />
+                        </div>
+                      </td>
+
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

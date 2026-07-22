@@ -2,42 +2,30 @@
 
 import { useState, useTransition } from "react";
 
-interface DeleteButtonProps {
+interface RestoreButtonProps {
   id: number;
-  itemName?: string;
   action: (id: number) => Promise<void> | void; 
   label: string;
-  title?: string; // Judul modal opsional
+  title?: string;
   confirmMsg?: string;
   className?: string;
-  requireNameMatch?: boolean; // Jika true, wajib mengetik nama item
 }
 
-export default function DeleteButton({ 
+export default function RestoreButton({ 
   id, 
-  itemName = "", 
   action, 
   label, 
-  title,
+  title = "Konfirmasi Restore",
   confirmMsg, 
-  className,
-  requireNameMatch = false 
-}: DeleteButtonProps) {
+  className 
+}: RestoreButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [inputName, setInputName] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Menentukan judul modal secara otomatis berdasarkan label tombol atau prop title
-  const modalTitle = title || (label.toLowerCase() === "hapus" ? "Hapus Item" : "Konfirmasi Hapus Permanen");
-  const pesan = confirmMsg || "Apakah Anda yakin ingin menghapus data ini?";
-  const isMatch = !requireNameMatch || inputName.trim() === itemName.trim();
-
-  // Teks tombol konfirmasi aksi di dalam modal
-  const confirmButtonText = requireNameMatch ? "Hapus Permanen" : "Hapus";
+  const pesan = confirmMsg || "Apakah Anda yakin ingin memulihkan data ini?";
 
   const handleOpenModal = () => {
-    setInputName("");
     setErrorMessage(null);
     setIsOpen(true);
   };
@@ -45,12 +33,10 @@ export default function DeleteButton({
   const handleCloseModal = () => {
     if (isPending) return;
     setIsOpen(false);
-    setInputName("");
     setErrorMessage(null);
   };
 
-  const handleConfirmDelete = () => {
-    if (requireNameMatch && !isMatch) return;
+  const handleConfirmRestore = () => {
     setErrorMessage(null);
     
     startTransition(async () => {
@@ -58,8 +44,8 @@ export default function DeleteButton({
         await action(id);
         setIsOpen(false);
       } catch (error) {
-        console.error("Gagal menghapus:", error);
-        setErrorMessage("Gagal menghapus data.");
+        console.error("Gagal memulihkan:", error);
+        setErrorMessage("Gagal memulihkan data.");
       }
     });
   };
@@ -75,28 +61,12 @@ export default function DeleteButton({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 w-full max-w-sm shadow-lg text-center">
             
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">
-              {modalTitle}
+              {title}
             </h3>
             
             <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
               {pesan}
             </p>
-
-            {requireNameMatch && (
-              <div className="mb-4 text-left">
-                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
-                  Ketik nama item <span className="text-red-600 font-bold">"{itemName}"</span> untuk konfirmasi:
-                </label>
-                <input
-                  type="text"
-                  value={inputName}
-                  onChange={(e) => setInputName(e.target.value)}
-                  placeholder="Masukkan nama item..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2 px-3 rounded-lg text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-red-500 transition-all"
-                  autoFocus
-                />
-              </div>
-            )}
 
             {errorMessage && (
               <div className="mb-4 p-2.5 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-semibold text-center">
@@ -115,11 +85,11 @@ export default function DeleteButton({
               </button>
               <button
                 type="button"
-                onClick={handleConfirmDelete}
-                disabled={isPending || (requireNameMatch && !isMatch)}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                onClick={handleConfirmRestore}
+                disabled={isPending}
+                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
               >
-                {isPending ? "Menghapus..." : confirmButtonText}
+                {isPending ? "Memulihkan..." : "Ya, Restore"}
               </button>
             </div>
 
